@@ -2,7 +2,7 @@
 
 #
 # Unit test for Text::EscapeDelimiters
-# $Id: escape_delim.t,v 1.1.1.1 2005/01/09 15:36:26 Alex Exp $
+# $Id: escape_delim.t,v 1.3 2005/03/20 23:11:02 aldenj20 Exp $
 #
 # -t : trace
 # -T : deep trace
@@ -19,7 +19,7 @@ unshift @INC, "./lib", "../lib";
 use vars qw($opt_t $opt_T);
 getopts('tT');
 
-plan tests => 8;
+plan tests => 17;
 
 #Compiles
 unshift @INC, "../lib";
@@ -71,6 +71,7 @@ is_deeply(\@lines, [
 my @new = map {
 	[ map {$obj->unescape($_)} $obj->split($_, ":") ]
 } @lines; 
+
 DUMP(@new);
 is_deeply(\@records, \@new, "original data structure restored");
 
@@ -93,6 +94,32 @@ is($stringified, "one:xyz;twoESC:twoESC::aESC;bESC;cESC;;threeESC;pointESC;zero:
 } $obj->split($stringified, ";"); 
 is_deeply(\@records, \@new, "original data structure restored");
 
+#Split on multiple delimiters at once
+$obj = new Text::EscapeDelimiters();
+my $string = "a\\:b=c:e=f:g\\=h=i";
+is_deeply([$obj->split($string, [":","="])],["a\\:b","c","e","f","g\\=h","i"], "split on multiple");
+
+#Null escape sequence
+$obj = new Text::EscapeDelimiters({EscapeSequence => ""});
+$string = "a:b";
+is($obj->escape($string, [":"]), $string, "null escape sequence - escape");
+is($obj->unescape($string, [":"]), $string, "null escape sequence - unescape");
+is($obj->regex(undef), qr//, "regex with null delimiters and null esc seq");
+
+#Null delimiters
+$obj = new Text::EscapeDelimiters();
+is($obj->escape($string, undef), $string, "escape with null delimiters");
+is($obj->escape($string, [undef, ""]), $string, "escape with more null delimiters");
+is($obj->regex(undef), qr/(?<!\\)/, "regex with null delimiters");
+
+#Input validation
+eval {$obj->escape($string, {1=>2})};
+ok(defined($@), "escape with invalid delimiter");
+eval {$obj->regex({1=>2})};
+ok(defined($@), "regex with invalid delimiter");
+
+
 #Tracing stubs
+BEGIN {$^W = 0}
 sub TRACE{}
 sub DUMP{}

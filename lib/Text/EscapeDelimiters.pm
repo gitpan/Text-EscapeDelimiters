@@ -2,7 +2,7 @@
 # Purpose : Escape delimiter characters within strings
 # Author  : John Alden
 # Created : Jan 2005
-# CVS     : $Id: EscapeDelimiters.pm,v 1.3 2005/01/10 20:09:53 Alex Exp $
+# CVS     : $Id: EscapeDelimiters.pm,v 1.4 2005/03/20 23:10:53 aldenj20 Exp $
 ###############################################################################
 
 package Text::EscapeDelimiters;
@@ -10,12 +10,12 @@ package Text::EscapeDelimiters;
 use strict;
 use Carp;
 use vars qw($VERSION);
-$VERSION = sprintf "%d.%03d", (q$Revision: 1.3 $ =~ /: (\d+)\.(\d+)/);
+$VERSION = sprintf "%d.%03d", (q$Revision: 1.4 $ =~ /: (\d+)\.(\d+)/);
 
 sub new {
 	my ($class, $options) = @_;
 	my $self = {
-		'EscapeSequence' => $options->{EscapeSequence} || "\\"
+		'EscapeSequence' => exists $options->{EscapeSequence}? $options->{EscapeSequence} : "\\"
 	};
 	return bless($self, $class);
 }
@@ -26,7 +26,8 @@ sub escape {
 	return $string unless($eseq); #no-op
 	
 	unless(ref $delim eq 'ARRAY') {
-		if(!defined $delim || ref $delim) {$delim = []}
+		if(!defined $delim) {$delim = []}
+		elsif(ref $delim) {croak("Delimiter should be scalar or an arrayref")}
 		else {$delim = [$delim]}
 	}
 	
@@ -44,7 +45,8 @@ sub regex {
 	TRACE($delim);
 
 	unless(ref $delim eq 'ARRAY') {
-		if(!defined $delim || ref $delim) {$delim = []}
+		if(!defined $delim) {$delim = []}
+		elsif(ref $delim) {croak("Delimiter should be scalar or an arrayref")}
 		else {$delim = [$delim]}
 	}
 
@@ -133,7 +135,9 @@ Valid options are:
 
 =item EscapeSequence
 
-One or more characters that will be used as an escape sequence in front of delimiter characters
+One or more characters that will be used as an escape sequence in front of delimiter characters.
+If not supplied, defaults to a backslash.  
+An undef or empty string of this key can be used to specify a null escape sequence.
 
 =back
 
@@ -158,7 +162,7 @@ Inverse of escape()
 =head1 VERSION
 
 See $Text::EscapeDelimiters::VERSION.
-Last edit: $Revision: 1.3 $ on $Date: 2005/01/10 20:09:53 $
+Last edit: $Revision: 1.4 $ on $Date: 2005/03/20 23:10:53 $
 
 =head1 BUGS
 
