@@ -1,0 +1,7 @@
+Changes
+Makefile.PL
+MANIFEST
+MANIFEST.SKIP
+README
+lib/Text/EscapeDelimiters.pm
+t/escape_delim.t
